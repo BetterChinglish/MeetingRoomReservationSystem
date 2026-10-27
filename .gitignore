@@ -1,4 +1,69 @@
-code/frontend/dist
-code/frontend/node_modules
+# ==========================================
+# 前端依赖与产物 (Frontend: Node / Vite / Vue)
+# ==========================================
+**/node_modules/
+**/dist/
+**/dist-ssr/
+*.local
+.npm
+.vite/
+.eslintcache
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
 
-code/backend/target
+# ==========================================
+# 后端构建与编译产物 (Backend: Java / Maven / Spring)
+# ==========================================
+**/target/
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+logs/
+*.log
+*.tmp
+
+# 本地临时配置与调试 SQL（防止敏感信息泄露）
+*-local.yml
+*-local.yaml
+*-local.properties
+application-local.*
+*schema-local.sql
+
+# JVM 崩溃日志
+hs_err_pid*
+replay_pid*
+
+# ==========================================
+# 开发工具与 IDE (IDEs & Editors)
+# ==========================================
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# Eclipse
+.project
+.classpath
+.settings/
+.factorypath
+.springBeans
+
+# ==========================================
+# 操作系统生成文件 (OS Generated)
+# ==========================================
+.DS_Store
+.DS_Store?
+._*
+Thumbs.db
+ehthumbs.db
+[Dd]esktop.ini

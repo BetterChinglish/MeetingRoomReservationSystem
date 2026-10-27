@@ -50,10 +50,14 @@ public class JwtAuthInterceptor implements HandlerInterceptor {
         String jti = claims.getId();
         if (StringUtils.hasText(jti)) {
             String blacklistKey = "auth:blacklist:" + jti;
-            Boolean isBlacklisted = stringRedisTemplate.hasKey(blacklistKey);
-            if (Boolean.TRUE.equals(isBlacklisted)) {
-                sendError(response, HttpServletResponse.SC_UNAUTHORIZED, "该登录会话已登出注销，请重新登录");
-                return false;
+            try {
+                Boolean isBlacklisted = stringRedisTemplate.hasKey(blacklistKey);
+                if (Boolean.TRUE.equals(isBlacklisted)) {
+                    sendError(response, HttpServletResponse.SC_UNAUTHORIZED, "该登录会话已登出注销，请重新登录");
+                    return false;
+                }
+            } catch (Exception e) {
+                log.warn("Redis unavailable for blacklist check: {}", e.getMessage());
             }
         }
 

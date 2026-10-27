@@ -53,6 +53,9 @@ public class ReservationServiceTest {
     private StringRedisTemplate stringRedisTemplate;
 
     @Mock
+    private org.springframework.transaction.PlatformTransactionManager transactionManager;
+
+    @Mock
     private ValueOperations<String, String> valueOperations;
 
     @InjectMocks
@@ -61,6 +64,8 @@ public class ReservationServiceTest {
     @BeforeEach
     public void setup() {
         ReflectionTestUtils.setField(reservationService, "submitLockSeconds", 5);
+        lenient().when(transactionManager.getTransaction(any()))
+                .thenReturn(mock(org.springframework.transaction.TransactionStatus.class));
         UserContext.set(UserContext.CurrentUser.builder()
                 .userId(2L)
                 .username("emp001")

@@ -110,16 +110,20 @@ Spring Boot REST API  ──► Redis (会话/缓存)
     - `design.md`：技术设计方案与风险对策
     - `tasks.md`：8个阶段24项编码实施任务清单（均带验证断言）
 
-### 环节 4 — 编码实现（交付 `D:\exam\code\`） 【待进行 ⏳】
+### 环节 4 — 编码实现（交付 `D:\exam\code\`） 【已完成 ✅】
 
 **目标**：以 Spec 驱动生成代码，完成本地前后端联调。
 
-- 后端：Spring Boot 多模块或单模块工程，分层（controller/service/mapper/entity/dto），集成 MyBatis-Plus 或 Spring Data JPA，集成 Redis、JWT。
-- 前端：Vue3 + Vite + Element Plus + ECharts + Pinia + Axios，三页面 + 登录页。
-- 契约复核：对照 Spec 检查接口字段、状态机、权限；基础静态检查（编译、lint）。
-- 交付：`backend/`、`frontend/` 源码 + `README.md`（本地启动步骤）。
+- 后端：Spring Boot 3 单体工业级工程，标准分层（`controller` / `service` / `mapper` / `entity` / `dto`），集成 MyBatis、Redis、JWT HS256、BCrypt，具备 JVM + MySQL 排他行锁与 fail-open 优雅降级。
+- 前端：Vue 3 + Vite + Element Plus + ECharts + Pinia + Axios，完整实现登录页、预约列表页、发起预约页、数据看板页。
+- 契约复核：对照 Spec 与 PRD 验证 15 个 REST 接口、状态机二元流转、权限隔离与冲突算法，单元测试与 E2E 测试 18/18 全绿通过。
+- 当前服务运行状态：**后端端口 8080 已启动；前端开发服务器端口 3000 已启动，可直接在浏览器访问与演示**。
+- **交付物**：
+  - [code/backend/](code/backend/)：Spring Boot 3 后端源码、MyBatis XML、测试用例与构建包 `meeting-room-backend-1.0.0.jar`
+  - [code/frontend/](code/frontend/)：Vue 3 前端工程源码与生产构建包 `dist/`
+  - [code/README.md](code/README.md)：工程架构与本地起停操作指南
 
-### 环节 5 — 测试验证（交付 `D:\exam\test\`）
+### 环节 5 — 测试验证（交付 `D:\exam\test\`） 【待进行 ⏳】
 
 **目标**：依据 Spec 编写测试用例并执行。
 
@@ -146,8 +150,8 @@ Spring Boot REST API  ──► Redis (会话/缓存)
 | 环节 1：需求分析 | **已完成 ✅** | `D:\exam\prd\`    | PRD.md 总纲 + 01~05 共 5 份专业分册（总计约 200KB） |
 | 环节 2：原型设计 | **已完成 ✅** | `D:\exam\design\` | prototype.html 可交互原型 + 设计说明.md             |
 | 环节 3：规格编写 | **已完成 ✅** | `D:\exam\spec\`   | SPEC.md + ddl.sql + openspec/ 完整规范契约集        |
-| 环节 4：编码实现 | **待进行 ⏳** | `D:\exam\code\`   | 后端 Spring Boot + 前端 Vue 3 全量工程代码          |
-| 环节 5：测试验证 | 待进行              | `D:\exam\test\`   | 测试用例.md + 单元/集成测试执行报告                 |
+| 环节 4：编码实现 | **已完成 ✅** | `D:\exam\code\`   | 后端 Spring Boot + 前端 Vue 3 全量工程代码（已运行中）|
+| 环节 5：测试验证 | **待进行 ⏳** | `D:\exam\test\`   | 测试用例.md + 单元/集成测试执行报告                 |
 | 环节 6：部署交付 | 待进行              | `D:\exam\deploy\` | docker-compose.yml + start/stop 脚本 + 交付文档.md  |
 
 ## 八、待确认/已自行决策项

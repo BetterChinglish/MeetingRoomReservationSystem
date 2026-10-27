@@ -90,10 +90,10 @@ ON DUPLICATE KEY UPDATE `name`=VALUES(`name`), `location`=VALUES(`location`), `c
 
 -- 5.3 初始用户数据 (BCrypt哈希，默认密码统设为 123456)
 INSERT INTO `user` (`id`, `username`, `password`, `name`, `dept_id`, `role`, `created_at`, `updated_at`) VALUES
-(1, 'admin', '$2a$10$7JB720yubVSZvUI0rEqK/.VqGOZTH.ulu33dHOiBE8ByOhJIrdAu2', '李强(管理员)', 2, 'ADMIN', NOW(), NOW()),
-(2, 'emp001', '$2a$10$7JB720yubVSZvUI0rEqK/.VqGOZTH.ulu33dHOiBE8ByOhJIrdAu2', '张伟(研发)', 1, 'EMPLOYEE', NOW(), NOW()),
-(3, 'emp002', '$2a$10$7JB720yubVSZvUI0rEqK/.VqGOZTH.ulu33dHOiBE8ByOhJIrdAu2', '李雷(产品)', 3, 'EMPLOYEE', NOW(), NOW()),
-(4, 'emp003', '$2a$10$7JB720yubVSZvUI0rEqK/.VqGOZTH.ulu33dHOiBE8ByOhJIrdAu2', '韩梅梅(市场)', 4, 'EMPLOYEE', NOW(), NOW())
+(1, 'admin', '$2a$10$rIpStP96Lsqs4pp2cEpHM.mk/pJ4q/LsNn9sJXq7TWn6rmAw/r1w6', '李强(管理员)', 2, 'ADMIN', NOW(), NOW()),
+(2, 'emp001', '$2a$10$rIpStP96Lsqs4pp2cEpHM.mk/pJ4q/LsNn9sJXq7TWn6rmAw/r1w6', '张伟(研发)', 1, 'EMPLOYEE', NOW(), NOW()),
+(3, 'emp002', '$2a$10$rIpStP96Lsqs4pp2cEpHM.mk/pJ4q/LsNn9sJXq7TWn6rmAw/r1w6', '李雷(产品)', 3, 'EMPLOYEE', NOW(), NOW()),
+(4, 'emp003', '$2a$10$rIpStP96Lsqs4pp2cEpHM.mk/pJ4q/LsNn9sJXq7TWn6rmAw/r1w6', '韩梅梅(市场)', 4, 'EMPLOYEE', NOW(), NOW())
 ON DUPLICATE KEY UPDATE `name`=VALUES(`name`), `dept_id`=VALUES(`dept_id`), `role`=VALUES(`role`);
 
 SET FOREIGN_KEY_CHECKS = 1;

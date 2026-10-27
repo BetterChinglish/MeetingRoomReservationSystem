@@ -43,15 +43,15 @@ public class ReservationService {
     private final DepartmentMapper departmentMapper;
     private final UserMapper userMapper;
     private final StringRedisTemplate stringRedisTemplate;
+    private final org.springframework.transaction.PlatformTransactionManager transactionManager;
 
     private static final ZoneId ZONE_SHANGHAI = ZoneId.of("Asia/Shanghai");
 
     @Value("${app.reservation.submit-lock-seconds:5}")
     private int submitLockSeconds;
 
-    private final java.util.concurrent.ConcurrentHashMap<String, java.util.concurrent.locks.ReentrantLock> roomDateLocks = new java.util.concurrent.ConcurrentHashMap<>();
+    private java.util.concurrent.ConcurrentHashMap<String, java.util.concurrent.locks.ReentrantLock> roomDateLocks = new java.util.concurrent.ConcurrentHashMap<>();
 
-    @Transactional(isolation = Isolation.REPEATABLE_READ)
     public ReservationVO createReservation(ReservationCreateRequest request) {
         Long currentUserId = UserContext.getUserId();
         if (currentUserId == null) {
@@ -80,10 +80,16 @@ public class ReservationService {
         String hash = DigestUtils.md5DigestAsHex(submitPayload.getBytes(StandardCharsets.UTF_8));
         String lockKey = "reservation:submit_lock:" + currentUserId + ":" + hash;
 
-        Boolean lockAcquired = stringRedisTemplate.opsForValue().setIfAbsent(lockKey, "1", submitLockSeconds, TimeUnit.SECONDS);
-        if (Boolean.FALSE.equals(lockAcquired)) {
-            log.warn("User {} duplicate submit detected for key {}", currentUserId, lockKey);
-            throw new BusinessException(ResultCode.TOO_MANY_REQUESTS.getCode(), "请勿重复提交预约申请");
+        try {
+            Boolean lockAcquired = stringRedisTemplate.opsForValue().setIfAbsent(lockKey, "1", submitLockSeconds, TimeUnit.SECONDS);
+            if (Boolean.FALSE.equals(lockAcquired)) {
+                log.warn("User {} duplicate submit detected for key {}", currentUserId, lockKey);
+                throw new BusinessException(ResultCode.TOO_MANY_REQUESTS.getCode(), "请勿重复提交预约申请");
+            }
+        } catch (BusinessException be) {
+            throw be;
+        } catch (Exception e) {
+            log.warn("Redis unavailable for submit lock check: {}", e.getMessage());
         }
 
         // 4. Validate meeting room status
@@ -109,59 +115,64 @@ public class ReservationService {
         java.util.concurrent.locks.ReentrantLock jvmLock = roomDateLocks.computeIfAbsent(slotKey, k -> new java.util.concurrent.locks.ReentrantLock(true));
         jvmLock.lock();
         try {
-            // 7. Acquire exclusive row lock and check collision
-            List<Reservation> existingList = reservationMapper.findActiveByRoomAndDateForUpdate(request.getRoomId(), request.getReserveDate());
-            if (existingList.isEmpty()) {
-                // Lock room row as fallback
-                meetingRoomMapper.findByIdForUpdate(request.getRoomId());
-            }
+            org.springframework.transaction.support.TransactionTemplate txTemplate =
+                    new org.springframework.transaction.support.TransactionTemplate(transactionManager);
+            txTemplate.setIsolationLevel(org.springframework.transaction.TransactionDefinition.ISOLATION_REPEATABLE_READ);
 
-            // Collision formula: max(s1, s2) < min(e1, e2) <=> s_new < r.end_time AND r.start_time < e_new
-            LocalTime sNew = request.getStartTime();
-            LocalTime eNew = request.getEndTime();
-
-            for (Reservation r : existingList) {
-                LocalTime sExist = r.getStartTime();
-                LocalTime eExist = r.getEndTime();
-
-                if (sNew.isBefore(eExist) && sExist.isBefore(eNew)) {
-                    log.info("Collision detected between [{}, {}) and [{}, {}) for room {}", sNew, eNew, sExist, eExist, request.getRoomId());
-                    Map<String, Object> conflictDetails = new HashMap<>();
-                    conflictDetails.put("conflictId", r.getId());
-                    conflictDetails.put("title", r.getTitle());
-                    conflictDetails.put("reserveDate", r.getReserveDate());
-                    conflictDetails.put("startTime", r.getStartTime().toString());
-                    conflictDetails.put("endTime", r.getEndTime().toString());
-                    conflictDetails.put("userName", r.getUserName());
-                    throw new BusinessException(ResultCode.CONFLICT.getCode(), "该时段已被预约，存在时段冲突", conflictDetails);
+            return txTemplate.execute(status -> {
+                // 7. Acquire exclusive row lock and check collision
+                List<Reservation> existingList = reservationMapper.findActiveByRoomAndDateForUpdate(request.getRoomId(), request.getReserveDate());
+                if (existingList.isEmpty()) {
+                    // Lock room row as fallback
+                    meetingRoomMapper.findByIdForUpdate(request.getRoomId());
                 }
-            }
 
-            // 8. Insert record
-            Reservation reservation = Reservation.builder()
-                    .roomId(room.getId())
-                    .userId(currentUserId)
-                    .reserveDate(request.getReserveDate())
-                    .startTime(request.getStartTime())
-                    .endTime(request.getEndTime())
-                    .deptId(dept.getId())
-                    .title(request.getTitle())
-                    .roomName(room.getName())
-                    .deptName(dept.getName())
-                    .userName(userName)
-                    .status("PENDING")
-                    .build();
+                // Collision formula: max(s1, s2) < min(e1, e2) <=> s_new < r.end_time AND r.start_time < e_new
+                LocalTime sNew = request.getStartTime();
+                LocalTime eNew = request.getEndTime();
 
-            reservationMapper.insert(reservation);
+                for (Reservation r : existingList) {
+                    LocalTime sExist = r.getStartTime();
+                    LocalTime eExist = r.getEndTime();
 
-            // 9. Evict dashboard cache
-            evictDashboardCache(request.getReserveDate());
+                    if (sNew.isBefore(eExist) && sExist.isBefore(eNew)) {
+                        log.info("Collision detected between [{}, {}) and [{}, {}) for room {}", sNew, eNew, sExist, eExist, request.getRoomId());
+                        Map<String, Object> conflictDetails = new HashMap<>();
+                        conflictDetails.put("conflictId", r.getId());
+                        conflictDetails.put("title", r.getTitle());
+                        conflictDetails.put("reserveDate", r.getReserveDate());
+                        conflictDetails.put("startTime", r.getStartTime().toString());
+                        conflictDetails.put("endTime", r.getEndTime().toString());
+                        conflictDetails.put("userName", r.getUserName());
+                        throw new BusinessException(ResultCode.CONFLICT.getCode(), "该时段已被预约，存在时段冲突", conflictDetails);
+                    }
+                }
 
-            return toVO(reservation, now);
+                // 8. Insert record
+                Reservation reservation = Reservation.builder()
+                        .roomId(room.getId())
+                        .userId(currentUserId)
+                        .reserveDate(request.getReserveDate())
+                        .startTime(request.getStartTime())
+                        .endTime(request.getEndTime())
+                        .deptId(dept.getId())
+                        .title(request.getTitle())
+                        .roomName(room.getName())
+                        .deptName(dept.getName())
+                        .userName(userName)
+                        .status("PENDING")
+                        .build();
+
+                reservationMapper.insert(reservation);
+
+                // 9. Evict dashboard cache
+                evictDashboardCache(request.getReserveDate());
+
+                return toVO(reservation, now);
+            });
         } finally {
             jvmLock.unlock();
         }
-    }
     }
 
     public PageResult<ReservationVO> queryList(Long roomId, LocalDate reserveDate, Long deptId, Long userId, String status, int page, int size) {

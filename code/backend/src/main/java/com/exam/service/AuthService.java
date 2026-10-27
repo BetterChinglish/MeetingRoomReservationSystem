@@ -53,18 +53,30 @@ public class AuthService {
 
         // 1. Check IP rate limit
         String ipKey = "auth:ip_limit:" + clientIp;
-        String ipCountStr = stringRedisTemplate.opsForValue().get(ipKey);
-        if (ipCountStr != null && Integer.parseInt(ipCountStr) >= ipMaxFailedAttempts) {
-            log.warn("IP {} exceeded max failed login attempts", clientIp);
-            throw new BusinessException(ResultCode.TOO_MANY_REQUESTS.getCode(), "登录尝试过于频繁，请稍后再试");
+        try {
+            String ipCountStr = stringRedisTemplate.opsForValue().get(ipKey);
+            if (ipCountStr != null && Integer.parseInt(ipCountStr) >= ipMaxFailedAttempts) {
+                log.warn("IP {} exceeded max failed login attempts", clientIp);
+                throw new BusinessException(ResultCode.TOO_MANY_REQUESTS.getCode(), "登录尝试过于频繁，请稍后再试");
+            }
+        } catch (BusinessException be) {
+            throw be;
+        } catch (Exception e) {
+            log.warn("Redis unavailable for IP rate limiting check: {}", e.getMessage());
         }
 
         // 2. Check Account lockout
         String lockoutKey = "auth:lockout:" + username;
-        String failCountStr = stringRedisTemplate.opsForValue().get(lockoutKey);
-        if (failCountStr != null && Integer.parseInt(failCountStr) >= maxFailedAttempts) {
-            log.warn("Account {} is locked out due to multiple failed logins", username);
-            throw new BusinessException(ResultCode.ACCOUNT_LOCKED.getCode(), "账号已被临时锁定，请15分钟后再试");
+        try {
+            String failCountStr = stringRedisTemplate.opsForValue().get(lockoutKey);
+            if (failCountStr != null && Integer.parseInt(failCountStr) >= maxFailedAttempts) {
+                log.warn("Account {} is locked out due to multiple failed logins", username);
+                throw new BusinessException(ResultCode.ACCOUNT_LOCKED.getCode(), "账号已被临时锁定，请15分钟后再试");
+            }
+        } catch (BusinessException be) {
+            throw be;
+        } catch (Exception e) {
+            log.warn("Redis unavailable for account lockout check: {}", e.getMessage());
         }
 
         // 3. Query user
@@ -78,7 +90,11 @@ public class AuthService {
         }
 
         // 4. Success -> Clear account lockout counter
-        stringRedisTemplate.delete(lockoutKey);
+        try {
+            stringRedisTemplate.delete(lockoutKey);
+        } catch (Exception e) {
+            log.warn("Redis unavailable to clear lockout key: {}", e.getMessage());
+        }
 
         // 5. Query Dept Name
         Department dept = departmentMapper.findById(user.getDeptId());
@@ -110,9 +126,13 @@ public class AuthService {
         if (claims != null && StringUtils.hasText(claims.getId())) {
             long remaining = jwtUtil.getRemainingSeconds(claims);
             if (remaining > 0) {
-                String blacklistKey = "auth:blacklist:" + claims.getId();
-                stringRedisTemplate.opsForValue().set(blacklistKey, "revoked", remaining, TimeUnit.SECONDS);
-                log.info("Token jti {} added to blacklist for {}s", claims.getId(), remaining);
+                try {
+                    String blacklistKey = "auth:blacklist:" + claims.getId();
+                    stringRedisTemplate.opsForValue().set(blacklistKey, "revoked", remaining, TimeUnit.SECONDS);
+                    log.info("Token jti {} added to blacklist for {}s", claims.getId(), remaining);
+                } catch (Exception e) {
+                    log.warn("Redis unavailable for logout blacklist: {}", e.getMessage());
+                }
             }
         }
     }
@@ -136,14 +156,18 @@ public class AuthService {
     }
 
     private void recordLoginFailure(String lockoutKey, String ipKey) {
-        Long fails = stringRedisTemplate.opsForValue().increment(lockoutKey);
-        if (fails != null && fails == 1) {
-            stringRedisTemplate.expire(lockoutKey, lockoutMinutes, TimeUnit.MINUTES);
-        }
+        try {
+            Long fails = stringRedisTemplate.opsForValue().increment(lockoutKey);
+            if (fails != null && fails == 1) {
+                stringRedisTemplate.expire(lockoutKey, lockoutMinutes, TimeUnit.MINUTES);
+            }
 
-        Long ipFails = stringRedisTemplate.opsForValue().increment(ipKey);
-        if (ipFails != null && ipFails == 1) {
-            stringRedisTemplate.expire(ipKey, ipRateLimitMinutes, TimeUnit.MINUTES);
+            Long ipFails = stringRedisTemplate.opsForValue().increment(ipKey);
+            if (ipFails != null && ipFails == 1) {
+                stringRedisTemplate.expire(ipKey, ipRateLimitMinutes, TimeUnit.MINUTES);
+            }
+        } catch (Exception e) {
+            log.warn("Redis unavailable for recordLoginFailure: {}", e.getMessage());
         }
     }
 

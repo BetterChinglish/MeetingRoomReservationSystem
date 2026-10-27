@@ -112,13 +112,12 @@ INSERT INTO `meeting_room` (`id`, `name`, `location`, `capacity`, `status`, `cre
 (5, '第五会议室 (临时维护)', 'C座 1F-102', 15, 'DISABLED', NOW(), NOW(), NULL, 0)
 ON DUPLICATE KEY UPDATE `name`=VALUES(`name`), `location`=VALUES(`location`), `capacity`=VALUES(`capacity`), `status`=VALUES(`status`);
 
--- 5.3 初始用户数据 (BCrypt哈希，默认密码统设为 123456: $2a$10$w6M6r0M2oWd9cT9kZ1Z1Ou1pX5qY6x7z8a9b0c1d2e3f4g5h6i)
--- 示例哈希 $2a$10$7JB720yubVSZvUI0rEqK/.VqGOZTH.ulu33dHOiBE8ByOhJIrdAu2 对应密码 "123456"
+-- 5.3 初始用户数据 (BCrypt哈希，默认密码统设为 123456)
 INSERT INTO `user` (`id`, `username`, `password`, `name`, `dept_id`, `role`, `created_at`, `updated_at`) VALUES
-(1, 'admin', '$2a$10$7JB720yubVSZvUI0rEqK/.VqGOZTH.ulu33dHOiBE8ByOhJIrdAu2', '李强(管理员)', 2, 'ADMIN', NOW(), NOW()),
-(2, 'emp001', '$2a$10$7JB720yubVSZvUI0rEqK/.VqGOZTH.ulu33dHOiBE8ByOhJIrdAu2', '张伟(研发)', 1, 'EMPLOYEE', NOW(), NOW()),
-(3, 'emp002', '$2a$10$7JB720yubVSZvUI0rEqK/.VqGOZTH.ulu33dHOiBE8ByOhJIrdAu2', '李雷(产品)', 3, 'EMPLOYEE', NOW(), NOW()),
-(4, 'emp003', '$2a$10$7JB720yubVSZvUI0rEqK/.VqGOZTH.ulu33dHOiBE8ByOhJIrdAu2', '韩梅梅(市场)', 4, 'EMPLOYEE', NOW(), NOW())
+(1, 'admin', '$2a$10$rIpStP96Lsqs4pp2cEpHM.mk/pJ4q/LsNn9sJXq7TWn6rmAw/r1w6', '李强(管理员)', 2, 'ADMIN', NOW(), NOW()),
+(2, 'emp001', '$2a$10$rIpStP96Lsqs4pp2cEpHM.mk/pJ4q/LsNn9sJXq7TWn6rmAw/r1w6', '张伟(研发)', 1, 'EMPLOYEE', NOW(), NOW()),
+(3, 'emp002', '$2a$10$rIpStP96Lsqs4pp2cEpHM.mk/pJ4q/LsNn9sJXq7TWn6rmAw/r1w6', '李雷(产品)', 3, 'EMPLOYEE', NOW(), NOW()),
+(4, 'emp003', '$2a$10$rIpStP96Lsqs4pp2cEpHM.mk/pJ4q/LsNn9sJXq7TWn6rmAw/r1w6', '韩梅梅(市场)', 4, 'EMPLOYEE', NOW(), NOW())
 ON DUPLICATE KEY UPDATE `name`=VALUES(`name`), `dept_id`=VALUES(`dept_id`), `role`=VALUES(`role`);
 
 SET FOREIGN_KEY_CHECKS = 1;
