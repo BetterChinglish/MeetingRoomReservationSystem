@@ -1,0 +1,2240 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>会议室预约系统 — 交互原型 (Element Plus 规范版)</title>
+  <!-- Element Plus CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css">
+  <style>
+    :root {
+      --brand-primary: #2563eb;
+      --brand-primary-dark: #1d4ed8;
+      --brand-primary-light: #eff6ff;
+      --brand-navy: #1e293b;
+      --brand-bg: #f8fafc;
+      --brand-card-bg: #ffffff;
+      --brand-border: #e2e8f0;
+      --brand-text-main: #0f172a;
+      --brand-text-sub: #475569;
+      --brand-text-muted: #94a3b8;
+      --status-pending: #3b82f6;
+      --status-active: #10b981;
+      --status-ended: #64748b;
+      --status-cancelled: #ef4444;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      background-color: var(--brand-bg);
+      color: var(--brand-text-main);
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+    }
+
+    /* 顶部导航通栏 */
+    .app-header {
+      background: #ffffff;
+      border-bottom: 1px solid var(--brand-border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+    }
+
+    .header-inner {
+      max-width: 1400px;
+      margin: 0 auto;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+    }
+
+    .brand-section {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-logo {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      font-size: 20px;
+      font-weight: 700;
+      box-shadow: 0 2px 4px rgba(37, 99, 235, 0.25);
+    }
+
+    .brand-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--brand-text-main);
+      letter-spacing: -0.2px;
+    }
+
+    .brand-subtitle {
+      font-size: 12px;
+      color: var(--brand-text-muted);
+      background: #f1f5f9;
+      padding: 2px 8px;
+      border-radius: 4px;
+      margin-left: 6px;
+      font-weight: 500;
+    }
+
+    /* 导航标签切换器 */
+    .nav-tabs {
+      display: flex;
+      gap: 4px;
+      background: #f1f5f9;
+      padding: 4px;
+      border-radius: 8px;
+    }
+
+    .nav-tab-item {
+      padding: 8px 18px;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--brand-text-sub);
+      cursor: pointer;
+      border-radius: 6px;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      user-select: none;
+    }
+
+    .nav-tab-item:hover {
+      color: var(--brand-primary);
+    }
+
+    .nav-tab-item.active {
+      background: #ffffff;
+      color: var(--brand-primary);
+      font-weight: 600;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    }
+
+    /* 右侧角色切换与时钟 */
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .system-clock {
+      font-size: 12px;
+      color: var(--brand-text-muted);
+      font-variant-numeric: tabular-nums;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: #f8fafc;
+      border: 1px solid var(--brand-border);
+      padding: 4px 10px;
+      border-radius: 6px;
+    }
+
+    .role-switcher-card {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #f8fafc;
+      padding: 4px 10px;
+      border-radius: 8px;
+      border: 1px solid var(--brand-border);
+    }
+
+    .role-avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: #e2e8f0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--brand-text-sub);
+    }
+
+    .role-info {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.2;
+    }
+
+    .role-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--brand-text-main);
+    }
+
+    .role-dept {
+      font-size: 11px;
+      color: var(--brand-text-muted);
+    }
+
+    /* 主内容区容器 */
+    .app-main {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    /* 通用卡片容器 */
+    .content-card {
+      background: #ffffff;
+      border: 1px solid var(--brand-border);
+      border-radius: 10px;
+      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.02);
+      padding: 20px 24px;
+      margin-bottom: 20px;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 18px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #f1f5f9;
+    }
+
+    .card-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--brand-text-main);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card-title-badge {
+      font-size: 12px;
+      font-weight: normal;
+      background: var(--brand-primary-light);
+      color: var(--brand-primary);
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+
+    /* 筛选条件行 */
+    .filter-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      align-items: flex-end;
+    }
+
+    .filter-item {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .filter-label {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--brand-text-sub);
+    }
+
+    /* 快捷筛选标签 */
+    .quick-tags {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 14px;
+      padding-top: 12px;
+      border-top: 1px dashed var(--brand-border);
+    }
+
+    .quick-tag-label {
+      font-size: 12px;
+      color: var(--brand-text-muted);
+    }
+
+    /* 状态脉冲徽标 */
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .status-badge.pending {
+      background: #eff6ff;
+      color: #2563eb;
+      border: 1px solid #bfdbfe;
+    }
+
+    .status-badge.active {
+      background: #ecfdf5;
+      color: #059669;
+      border: 1px solid #a7f3d0;
+    }
+
+    .status-badge.ended {
+      background: #f1f5f9;
+      color: #64748b;
+      border: 1px solid #cbd5e1;
+    }
+
+    .status-badge.cancelled {
+      background: #fef2f2;
+      color: #dc2626;
+      border: 1px solid #fecaca;
+    }
+
+    .pulse-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background-color: currentColor;
+      position: relative;
+    }
+
+    .status-badge.active .pulse-dot::after {
+      content: '';
+      position: absolute;
+      top: -2px;
+      left: -2px;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background-color: #10b981;
+      opacity: 0.6;
+      animation: pulse 1.8s infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(0.8); opacity: 0.8; }
+      50% { transform: scale(1.6); opacity: 0.2; }
+      100% { transform: scale(0.8); opacity: 0.8; }
+    }
+
+    /* 预约表单排期看板组件 */
+    .timeline-container {
+      background: #f8fafc;
+      border: 1px solid var(--brand-border);
+      border-radius: 8px;
+      padding: 16px;
+      margin: 16px 0;
+    }
+
+    .timeline-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      font-size: 13px;
+      color: var(--brand-text-sub);
+    }
+
+    .timeline-track {
+      position: relative;
+      height: 48px;
+      background: #e2e8f0;
+      border-radius: 6px;
+      overflow: hidden;
+      display: flex;
+    }
+
+    .timeline-grid-mark {
+      flex: 1;
+      border-right: 1px solid rgba(255, 255, 255, 0.6);
+      height: 100%;
+      position: relative;
+    }
+
+    .timeline-axis {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--brand-text-muted);
+      margin-top: 6px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .timeline-slot {
+      position: absolute;
+      height: 38px;
+      top: 5px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 500;
+      color: #ffffff;
+      padding: 0 6px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      transition: all 0.2s ease;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+      z-index: 2;
+    }
+
+    .timeline-slot.conflict {
+      background: #ef4444 !important;
+      border: 2px dashed #b91c1c;
+      animation: shake 0.4s ease-in-out;
+    }
+
+    .timeline-slot.target-new {
+      background: repeating-linear-gradient(
+        45deg,
+        #3b82f6,
+        #3b82f6 8px,
+        #2563eb 8px,
+        #2563eb 16px
+      );
+      border: 2px solid #1d4ed8;
+      z-index: 4;
+      opacity: 0.92;
+    }
+
+    /* 看板 KPI 指标卡 */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .kpi-card {
+      background: #ffffff;
+      border: 1px solid var(--brand-border);
+      border-radius: 10px;
+      padding: 18px 20px;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .kpi-card:hover {
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    }
+
+    .kpi-label {
+      font-size: 13px;
+      color: var(--brand-text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
+    .kpi-value {
+      font-size: 26px;
+      font-weight: 700;
+      color: var(--brand-text-main);
+      font-variant-numeric: tabular-nums;
+      display: flex;
+      align-items: baseline;
+      gap: 4px;
+    }
+
+    .kpi-unit {
+      font-size: 13px;
+      font-weight: 400;
+      color: var(--brand-text-sub);
+    }
+
+    .kpi-desc {
+      font-size: 12px;
+      color: var(--brand-text-muted);
+      margin-top: 6px;
+    }
+
+    /* 图表容器网格 */
+    .charts-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+
+    .chart-box {
+      height: 360px;
+      width: 100%;
+    }
+
+    .chart-box-full {
+      height: 400px;
+      width: 100%;
+    }
+
+    /* 底部时钟模拟器浮动悬浮球 */
+    .sim-bar {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #ffffff;
+      border: 1px solid var(--brand-border);
+      border-radius: 30px;
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+      padding: 6px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      z-index: 999;
+      font-size: 13px;
+    }
+
+    .sim-tag {
+      background: #eff6ff;
+      color: #2563eb;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <!-- 顶部全局导航栏 -->
+    <header class="app-header">
+      <div class="header-inner">
+        <!-- 品牌标识 -->
+        <div class="brand-section">
+          <div class="brand-logo">
+            <el-icon><calendar /></el-icon>
+          </div>
+          <div>
+            <div style="display: flex; align-items: center;">
+              <span class="brand-title">会议室预约系统</span>
+              <span class="brand-subtitle">企业统一行政管理平台</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 页面切换导航 -->
+        <div class="nav-tabs">
+          <div
+            class="nav-tab-item"
+            :class="{ active: currentTab === 'list' }"
+            @click="switchTab('list')">
+            <el-icon><document /></el-icon>
+            <span>预约列表</span>
+          </div>
+          <div
+            class="nav-tab-item"
+            :class="{ active: currentTab === 'form' }"
+            @click="switchTab('form')">
+            <el-icon><circle-plus /></el-icon>
+            <span>发起预约</span>
+          </div>
+          <div
+            class="nav-tab-item"
+            :class="{ active: currentTab === 'dashboard' }"
+            @click="switchTab('dashboard')">
+            <el-icon><data-analysis /></el-icon>
+            <span>数据看板</span>
+          </div>
+        </div>
+
+        <!-- 右侧：当前时钟与角色切换器 -->
+        <div class="header-right">
+          <!-- 系统时间 -->
+          <div class="system-clock" title="服务端权威当前时间 (Asia/Shanghai)">
+            <el-icon><timer /></el-icon>
+            <span>{{ simulatedCurrentDateTimeStr }}</span>
+          </div>
+
+          <!-- 角色快速切换 -->
+          <div class="role-switcher-card">
+            <div class="role-avatar">{{ currentUser.name[0] }}</div>
+            <div class="role-info">
+              <span class="role-name">{{ currentUser.name }}</span>
+              <span class="role-dept">{{ currentUser.deptName }} · {{ currentUser.role === 'ADMIN' ? '管理员' : '员工' }}</span>
+            </div>
+            <el-dropdown trigger="click" @command="handleUserSwitch">
+              <el-button link type="primary" size="small" style="margin-left: 4px;">
+                切换身份 <el-icon class="el-icon--right"><arrow-down /></el-icon>
+              </el-button>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item
+                    v-for="u in presetUsers"
+                    :key="u.username"
+                    :command="u.username"
+                    :disabled="u.username === currentUser.username">
+                    <span style="font-weight: 600;">{{ u.name }}</span>
+                    <span style="color: #64748b; margin-left: 8px;">({{ u.deptName }} · {{ u.roleText }})</span>
+                    <el-tag v-if="u.username === currentUser.username" size="small" type="success" style="margin-left: 8px;">当前</el-tag>
+                  </el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- 主内容区 -->
+    <main class="app-main">
+
+      <!-- ========================================== -->
+      <!-- TAB 1: 预约列表页                           -->
+      <!-- ========================================== -->
+      <section v-show="currentTab === 'list'">
+        <!-- 筛选与操作卡片 -->
+        <div class="content-card">
+          <div class="card-header">
+            <div class="card-title">
+              <el-icon color="#2563eb"><filter /></el-icon>
+              <span>预约综合查询</span>
+              <span class="card-title-badge">PRD 分册 02 契约实现</span>
+            </div>
+            <div>
+              <el-button type="primary" icon="Plus" @click="switchTab('form')">
+                发起新预约
+              </el-button>
+            </div>
+          </div>
+
+          <!-- 筛选表单 -->
+          <div class="filter-bar">
+            <div class="filter-item">
+              <span class="filter-label">会议室</span>
+              <el-select v-model="filterParams.roomId" placeholder="全部会议室" clearable style="width: 200px;">
+                <el-option
+                  v-for="room in meetingRooms"
+                  :key="room.id"
+                  :label="room.name"
+                  :value="room.id">
+                  <span style="float: left">{{ room.name }}</span>
+                  <span style="float: right; color: #8492a6; font-size: 12px">{{ room.capacity }}人</span>
+                </el-option>
+              </el-select>
+            </div>
+
+            <div class="filter-item">
+              <span class="filter-label">预约日期</span>
+              <el-date-picker
+                v-model="filterParams.reserveDate"
+                type="date"
+                value-format="YYYY-MM-DD"
+                placeholder="全部日期"
+                clearable
+                style="width: 170px;">
+              </el-date-picker>
+            </div>
+
+            <div class="filter-item">
+              <span class="filter-label">预约部门</span>
+              <el-select v-model="filterParams.deptId" placeholder="全部部门" clearable style="width: 160px;">
+                <el-option
+                  v-for="dept in departments"
+                  :key="dept.id"
+                  :label="dept.name"
+                  :value="dept.id">
+                </el-option>
+              </el-select>
+            </div>
+
+            <div class="filter-item">
+              <span class="filter-label">预约状态</span>
+              <el-select v-model="filterParams.status" placeholder="全部状态" clearable style="width: 150px;">
+                <el-option label="全部状态" value=""></el-option>
+                <el-option label="未开始 (PENDING)" value="PENDING"></el-option>
+                <el-option label="进行中 (ACTIVE)" value="ACTIVE"></el-option>
+                <el-option label="已结束 (ENDED)" value="ENDED"></el-option>
+                <el-option label="已取消 (CANCELLED)" value="CANCELLED"></el-option>
+              </el-select>
+            </div>
+
+            <div style="display: flex; gap: 8px;">
+              <el-button type="primary" icon="Search" @click="handleFilterSearch">查询</el-button>
+              <el-button icon="Refresh" @click="resetFilter">重置</el-button>
+            </div>
+          </div>
+
+          <!-- 快捷条件过滤标签 -->
+          <div class="quick-tags">
+            <span class="quick-tag-label">快捷视图：</span>
+            <el-radio-group v-model="quickScope" size="small" @change="handleQuickScopeChange">
+              <el-radio-button label="all">全量预约</el-radio-button>
+              <el-radio-button label="mine">仅看本人预约</el-radio-button>
+              <el-radio-button label="today">今日预约</el-radio-button>
+              <el-radio-button label="active">当前进行中</el-radio-button>
+            </el-radio-group>
+            <span style="margin-left: auto; font-size: 13px; color: var(--brand-text-muted);">
+              匹配记录：<strong style="color: var(--brand-primary);">{{ filteredReservations.length }}</strong> 条
+            </span>
+          </div>
+        </div>
+
+        <!-- 列表表格卡片 -->
+        <div class="content-card">
+          <el-table
+            :data="pagedReservations"
+            stripe
+            style="width: 100%"
+            empty-text="暂无符合条件的预约记录">
+            <el-table-column prop="id" label="预约编号" width="100">
+              <template #default="{ row }">
+                <span style="font-family: monospace; font-weight: 600; color: #475569;">#{{ row.id }}</span>
+              </template>
+            </el-table-column>
+
+            <el-table-column label="会议室" min-width="160">
+              <template #default="{ row }">
+                <div>
+                  <div style="font-weight: 600; color: #1e293b;">{{ row.roomName }}</div>
+                  <div style="font-size: 11px; color: #94a3b8;">{{ row.roomLocation }} ({{ row.roomCapacity }}人)</div>
+                </div>
+              </template>
+            </el-table-column>
+
+            <el-table-column prop="title" label="会议主题" min-width="220" show-overflow-tooltip>
+              <template #default="{ row }">
+                <div style="font-weight: 500;">{{ row.title }}</div>
+              </template>
+            </el-table-column>
+
+            <el-table-column prop="reserveDate" label="预约日期" width="120" sortable>
+              <template #default="{ row }">
+                <span style="font-variant-numeric: tabular-nums;">{{ row.reserveDate }}</span>
+              </template>
+            </el-table-column>
+
+            <el-table-column label="时段与时长" width="170">
+              <template #default="{ row }">
+                <div>
+                  <div style="font-weight: 600; font-variant-numeric: tabular-nums; color: #1e293b;">
+                    {{ row.startTime }} ~ {{ row.endTime }}
+                  </div>
+                  <div style="font-size: 11px; color: #64748b;">
+                    共 {{ calcDurationMinutes(row.startTime, row.endTime) }} 分钟
+                  </div>
+                </div>
+              </template>
+            </el-table-column>
+
+            <el-table-column label="预约人" width="140">
+              <template #default="{ row }">
+                <div>
+                  <span>{{ row.userName }}</span>
+                  <el-tag v-if="row.userId === currentUser.id" size="small" type="primary" effect="plain" style="margin-left: 4px; padding: 0 4px; height: 18px; line-height: 16px;">
+                    我
+                  </el-tag>
+                  <div style="font-size: 11px; color: #94a3b8;">{{ row.deptName }}</div>
+                </div>
+              </template>
+            </el-table-column>
+
+            <el-table-column label="即时状态" width="130">
+              <template #default="{ row }">
+                <span class="status-badge" :class="getStatusBadgeClass(row.computedStatus)">
+                  <span class="pulse-dot"></span>
+                  <span>{{ getStatusText(row.computedStatus) }}</span>
+                </span>
+              </template>
+            </el-table-column>
+
+            <!-- 操作列（区分普通员工与管理员权限） -->
+            <el-table-column label="操作" width="180" fixed="right">
+              <template #default="{ row }">
+                <!-- 未开始状态：允许取消 -->
+                <template v-if="row.computedStatus === 'PENDING'">
+                  <!-- 本人或管理员拥有取消权限 -->
+                  <el-button
+                    v-if="canOperate(row)"
+                    type="danger"
+                    link
+                    size="small"
+                    @click="handleCancel(row)">
+                    {{ currentUser.role === 'ADMIN' && row.userId !== currentUser.id ? '取消(管理员)' : '取消预约' }}
+                  </el-button>
+                  <span v-else style="font-size: 12px; color: #94a3b8;">
+                    只读 (他人预约)
+                  </span>
+                </template>
+
+                <!-- 进行中状态：允许提前结束 -->
+                <template v-else-if="row.computedStatus === 'ACTIVE'">
+                  <!-- 本人或管理员拥有提前结束权限 -->
+                  <el-button
+                    v-if="canOperate(row)"
+                    type="warning"
+                    link
+                    size="small"
+                    @click="handleEarlyEnd(row)">
+                    {{ currentUser.role === 'ADMIN' && row.userId !== currentUser.id ? '提前结束(管理员)' : '提前结束' }}
+                  </el-button>
+                  <span v-else style="font-size: 12px; color: #94a3b8;">
+                    进行中 (只读)
+                  </span>
+                </template>
+
+                <!-- 已结束或已取消：历史归档 -->
+                <template v-else>
+                  <span style="font-size: 12px; color: #cbd5e1;">— 已归档 —</span>
+                </template>
+              </template>
+            </el-table-column>
+          </el-table>
+
+          <!-- 分页器 -->
+          <div style="display: flex; justify-content: flex-end; margin-top: 18px;">
+            <el-pagination
+              v-model:current-page="currentPage"
+              v-model:page-size="pageSize"
+              :total="filteredReservations.length"
+              :page-sizes="[10, 20, 50]"
+              layout="total, sizes, prev, pager, next, jumper"
+              @size-change="handleSizeChange"
+              @current-change="handleCurrentChange">
+            </el-pagination>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- TAB 2: 发起预约表单页                       -->
+      <!-- ========================================== -->
+      <section v-show="currentTab === 'form'">
+        <div class="content-card" style="max-width: 960px; margin: 0 auto;">
+          <div class="card-header">
+            <div class="card-title">
+              <el-icon color="#2563eb"><circle-plus /></el-icon>
+              <span>在线预约会议室</span>
+              <span class="card-title-badge">带入身份 · 半开区间冲突预检</span>
+            </div>
+            <el-button link @click="switchTab('list')">返回预约列表</el-button>
+          </div>
+
+          <el-form
+            ref="bookingFormRef"
+            :model="bookingForm"
+            :rules="bookingRules"
+            label-width="120px"
+            label-position="right"
+            style="margin-top: 16px;">
+
+            <!-- 会议室选择 -->
+            <el-form-item label="预约会议室" prop="roomId">
+              <el-select
+                v-model="bookingForm.roomId"
+                placeholder="请选择会议室"
+                style="width: 100%;"
+                @change="handleFormParamChange">
+                <el-option
+                  v-for="room in meetingRooms"
+                  :key="room.id"
+                  :label="`${room.name} (${room.location} · 容纳${room.capacity}人)`"
+                  :value="room.id"
+                  :disabled="room.status === 'DISABLED'">
+                  <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                      <span style="font-weight: 600;">{{ room.name }}</span>
+                      <span style="color: #64748b; font-size: 12px; margin-left: 8px;">{{ room.location }}</span>
+                    </div>
+                    <div>
+                      <el-tag size="small" type="info">{{ room.capacity }}人</el-tag>
+                      <el-tag v-if="room.status === 'DISABLED'" size="small" type="danger" style="margin-left: 6px;">已停用</el-tag>
+                    </div>
+                  </div>
+                </el-option>
+              </el-select>
+              <div v-if="selectedRoomDetail" style="margin-top: 6px; font-size: 12px; color: #64748b;">
+                📍 位置：{{ selectedRoomDetail.location }} ｜ 👥 额定容量：{{ selectedRoomDetail.capacity }} 人 ｜ 状态：
+                <el-tag size="small" :type="selectedRoomDetail.status === 'ENABLED' ? 'success' : 'danger'">
+                  {{ selectedRoomDetail.status === 'ENABLED' ? '正常启用' : '暂停使用' }}
+                </el-tag>
+              </div>
+            </el-form-item>
+
+            <!-- 预约日期 -->
+            <el-form-item label="预约日期" prop="reserveDate">
+              <el-date-picker
+                v-model="bookingForm.reserveDate"
+                type="date"
+                value-format="YYYY-MM-DD"
+                :disabled-date="disabledPastDate"
+                placeholder="请选择预约日期（单日）"
+                style="width: 100%;"
+                @change="handleFormParamChange">
+              </el-date-picker>
+            </el-form-item>
+
+            <!-- 预约起止时段 -->
+            <el-form-item label="预约时段" required>
+              <div style="display: flex; align-items: center; gap: 12px; width: 100%;">
+                <el-select
+                  v-model="bookingForm.startTime"
+                  placeholder="开始时间"
+                  style="flex: 1;"
+                  @change="handleFormParamChange">
+                  <el-option
+                    v-for="t in timeSlotOptions"
+                    :key="t"
+                    :label="t"
+                    :value="t">
+                  </el-option>
+                </el-select>
+                <span style="color: #94a3b8; font-weight: 600;">至</span>
+                <el-select
+                  v-model="bookingForm.endTime"
+                  placeholder="结束时间"
+                  style="flex: 1;"
+                  @change="handleFormParamChange">
+                  <el-option
+                    v-for="t in timeSlotOptions"
+                    :key="t"
+                    :label="t"
+                    :value="t">
+                  </el-option>
+                </el-select>
+              </div>
+
+              <!-- 占用时长预估提示 -->
+              <div v-if="currentFormDurationMinutes > 0" style="margin-top: 6px; font-size: 12px; color: var(--brand-primary); font-weight: 500;">
+                ⏱️ 预计占用时长：{{ currentFormDurationMinutes }} 分钟 ({{ (currentFormDurationMinutes / 60).toFixed(1) }} 小时)
+              </div>
+              <div v-else-if="bookingForm.startTime && bookingForm.endTime && currentFormDurationMinutes <= 0" style="margin-top: 6px; font-size: 12px; color: #ef4444;">
+                ⚠️ 结束时间必须严格晚于开始时间！
+              </div>
+            </el-form-item>
+
+            <!-- 当日排期可视化时间轴看板 -->
+            <el-form-item label="当日排期看板">
+              <div class="timeline-container" style="width: 100%;">
+                <div class="timeline-header">
+                  <span>
+                    <strong>{{ selectedRoomDetail ? selectedRoomDetail.name : '未选会议室' }}</strong>
+                    在 <strong>{{ bookingForm.reserveDate || '未选日期' }}</strong> 的占用排期：
+                  </span>
+                  <div style="display: flex; gap: 12px; align-items: center;">
+                    <span style="display: inline-flex; align-items: center; gap: 4px; font-size: 11px;">
+                      <span style="width: 10px; height: 10px; background: #64748b; border-radius: 2px;"></span> 已有占用
+                    </span>
+                    <span style="display: inline-flex; align-items: center; gap: 4px; font-size: 11px;">
+                      <span style="width: 10px; height: 10px; background: #2563eb; border-radius: 2px;"></span> 本次拟约
+                    </span>
+                  </div>
+                </div>
+
+                <!-- 时间刻度轨道 (08:00 - 20:00) -->
+                <div class="timeline-track">
+                  <div v-for="h in 12" :key="h" class="timeline-grid-mark"></div>
+
+                  <!-- 已有有效预约块 -->
+                  <div
+                    v-for="r in dayOccupiedSlots"
+                    :key="r.id"
+                    class="timeline-slot"
+                    :style="calcSlotStyle(r.startTime, r.endTime, '#64748b')"
+                    :title="`${r.startTime}-${r.endTime} | ${r.title} (${r.userName})`">
+                    {{ r.startTime }}-{{ r.endTime }} {{ r.title }}
+                  </div>
+
+                  <!-- 本次拟约时段预览块 -->
+                  <div
+                    v-if="bookingForm.startTime && bookingForm.endTime && currentFormDurationMinutes > 0"
+                    class="timeline-slot target-new"
+                    :class="{ conflict: formConflictInfo.hasConflict }"
+                    :style="calcSlotStyle(bookingForm.startTime, bookingForm.endTime, '#2563eb')">
+                    本次: {{ bookingForm.startTime }}-{{ bookingForm.endTime }}
+                  </div>
+                </div>
+
+                <div class="timeline-axis">
+                  <span>08:00</span>
+                  <span>10:00</span>
+                  <span>12:00</span>
+                  <span>14:00</span>
+                  <span>16:00</span>
+                  <span>18:00</span>
+                  <span>20:00</span>
+                </div>
+              </div>
+            </el-form-item>
+
+            <!-- 实时冲突判定提示横幅 -->
+            <el-form-item label="冲突检测结果">
+              <div style="width: 100%;">
+                <el-alert
+                  v-if="formConflictInfo.hasConflict"
+                  title="时段冲突告警：所选时段已被占用！"
+                  type="error"
+                  :description="`与已有预约【${formConflictInfo.conflictRecord.title}】(${formConflictInfo.conflictRecord.startTime} ~ ${formConflictInfo.conflictRecord.endTime} · 预约人: ${formConflictInfo.conflictRecord.userName}) 时段重叠。请调整时间。`"
+                  show-icon
+                  :closable="false">
+                </el-alert>
+                <el-alert
+                  v-else-if="bookingForm.roomId && bookingForm.reserveDate && bookingForm.startTime && bookingForm.endTime && currentFormDurationMinutes > 0"
+                  title="时段空闲检测通过"
+                  type="success"
+                  description="该会议室在目标时段内无排期重叠（符合 [start, end) 半开区间不相交规则），可安全提交预约。"
+                  show-icon
+                  :closable="false">
+                </el-alert>
+                <el-alert
+                  v-else
+                  title="请先完整选择会议室、日期与起止时段"
+                  type="info"
+                  description="系统将依据 [start_time, end_time) 半开区间互斥算法自动执行冲突检测。"
+                  show-icon
+                  :closable="false">
+                </el-alert>
+              </div>
+            </el-form-item>
+
+            <!-- 预约人与部门 -->
+            <el-form-item label="预约人员">
+              <el-input :value="`${currentUser.name} (${currentUser.username})`" disabled style="width: 100%;">
+                <template #append>
+                  <el-tag size="small" type="info">当前登录人自动注入 · 不可篡改</el-tag>
+                </template>
+              </el-input>
+            </el-form-item>
+
+            <el-form-item label="预约部门" prop="deptId">
+              <el-select v-model="bookingForm.deptId" placeholder="请选择归属部门" style="width: 100%;">
+                <el-option
+                  v-for="dept in departments"
+                  :key="dept.id"
+                  :label="dept.name"
+                  :value="dept.id">
+                </el-option>
+              </el-select>
+            </el-form-item>
+
+            <!-- 会议主题 -->
+            <el-form-item label="会议主题" prop="title">
+              <el-input
+                v-model="bookingForm.title"
+                maxlength="100"
+                show-word-limit
+                placeholder="请输入明确具体的会议主题（例如：Q4产品规划评审会）">
+              </el-input>
+            </el-form-item>
+
+            <!-- 提交按钮行 -->
+            <el-form-item style="margin-top: 24px;">
+              <el-button
+                type="primary"
+                icon="Check"
+                :loading="submitting"
+                :disabled="formConflictInfo.hasConflict || currentFormDurationMinutes <= 0"
+                @click="submitBooking">
+                确认提交预约
+              </el-button>
+              <el-button @click="resetBookingForm">重置表单</el-button>
+              <el-button link @click="switchTab('list')">取消并返回</el-button>
+            </el-form-item>
+          </el-form>
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- TAB 3: 数据看板页                           -->
+      <!-- ========================================== -->
+      <section v-show="currentTab === 'dashboard'">
+        <!-- 筛选维度控制器 -->
+        <div class="content-card">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+            <div style="display: flex; align-items: center; gap: 16px;">
+              <div class="card-title" style="margin-bottom: 0;">
+                <el-icon color="#2563eb"><data-analysis /></el-icon>
+                <span>会议室负荷与利用率看板</span>
+              </div>
+              <el-radio-group v-model="dashboardDim" size="default" @change="handleDashboardDimChange">
+                <el-radio-button label="day">按日期统计 (单日)</el-radio-button>
+                <el-radio-button label="month">按月份统计 (单月)</el-radio-button>
+              </el-radio-group>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <!-- 日维度选择器 -->
+              <el-date-picker
+                v-if="dashboardDim === 'day'"
+                v-model="dashboardDate"
+                type="date"
+                value-format="YYYY-MM-DD"
+                :clearable="false"
+                placeholder="选择统计日期"
+                @change="refreshDashboard">
+              </el-date-picker>
+
+              <!-- 月维度选择器 -->
+              <el-date-picker
+                v-else
+                v-model="dashboardMonth"
+                type="month"
+                value-format="YYYY-MM"
+                :clearable="false"
+                placeholder="选择统计月份"
+                @change="refreshDashboard">
+              </el-date-picker>
+
+              <el-button
+                type="primary"
+                plain
+                icon="Refresh"
+                :loading="dashboardLoading"
+                @click="refreshDashboard">
+                刷新统计
+              </el-button>
+              <el-tag type="info" size="small">
+                Redis 缓存加速
+              </el-tag>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4 组核心 KPI 卡片 -->
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-label">
+              <span>有效预约总场次</span>
+              <el-icon><calendar /></el-icon>
+            </div>
+            <div class="kpi-value">
+              <span>{{ dashboardSummary.totalCount }}</span>
+              <span class="kpi-unit">场</span>
+            </div>
+            <div class="kpi-desc">
+              统计范围：非取消态 (PENDING/ACTIVE/ENDED)
+            </div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-label">
+              <span>总占用时长</span>
+              <el-icon><timer /></el-icon>
+            </div>
+            <div class="kpi-value">
+              <span>{{ dashboardSummary.totalMinutes }}</span>
+              <span class="kpi-unit">分钟</span>
+            </div>
+            <div class="kpi-desc">
+              折合 {{ (dashboardSummary.totalMinutes / 60).toFixed(1) }} 小时 · 原预约区间口径
+            </div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-label">
+              <span>纳入统计会议室</span>
+              <el-icon><office-building /></el-icon>
+            </div>
+            <div class="kpi-value">
+              <span>{{ dashboardSummary.roomCount }}</span>
+              <span class="kpi-unit">间</span>
+            </div>
+            <div class="kpi-desc">
+              全量主数据呈现 · 0场次不隐藏
+            </div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-label">
+              <span>参与预约部门</span>
+              <el-icon><user-filled /></el-icon>
+            </div>
+            <div class="kpi-value">
+              <span>{{ dashboardSummary.deptCount }}</span>
+              <span class="kpi-unit">个</span>
+            </div>
+            <div class="kpi-desc">
+              覆盖组织全量业务与职能体系
+            </div>
+          </div>
+        </div>
+
+        <!-- 图表网格第一行：会议室场次 vs 部门场次 -->
+        <div class="charts-grid">
+          <!-- 图表 1: 会议室预约场次对比 -->
+          <div class="content-card" style="margin-bottom: 0;">
+            <div class="card-header">
+              <div class="card-title">
+                <el-icon color="#2563eb"><histogram /></el-icon>
+                <span>各会议室预约场次对比</span>
+              </div>
+              <span style="font-size: 12px; color: var(--brand-text-muted);">按场次降序排列</span>
+            </div>
+            <div id="chart-room-count" class="chart-box"></div>
+          </div>
+
+          <!-- 图表 2: 部门预约场次对比 -->
+          <div class="content-card" style="margin-bottom: 0;">
+            <div class="card-header">
+              <div class="card-title">
+                <el-icon color="#0d9488"><pie-chart /></el-icon>
+                <span>各部门预约场次对比</span>
+              </div>
+              <span style="font-size: 12px; color: var(--brand-text-muted);">按场次降序排列</span>
+            </div>
+            <div id="chart-dept-count" class="chart-box"></div>
+          </div>
+        </div>
+
+        <!-- 图表网格第二行：会议室 x 部门 占用时长堆叠对比图 -->
+        <div class="content-card">
+          <div class="card-header">
+            <div class="card-title">
+              <el-icon color="#2563eb"><trend-charts /></el-icon>
+              <span>各会议室占用时长分布（按部门堆叠构成）</span>
+            </div>
+            <span style="font-size: 12px; color: var(--brand-text-muted);">
+              单位：分钟 ｜ 直观呈现各场地由哪些部门占用
+            </span>
+          </div>
+          <div id="chart-stacked-duration" class="chart-box-full"></div>
+        </div>
+
+        <!-- 无障碍与明细透视表卡片 -->
+        <div class="content-card">
+          <div class="card-header">
+            <div class="card-title">
+              <el-icon><grid /></el-icon>
+              <span>看板数据透视明细表</span>
+              <span class="card-title-badge">无障碍与精细核对视图</span>
+            </div>
+          </div>
+
+          <el-tabs v-model="dashboardTableTab">
+            <el-tab-pane label="会议室维度明细" name="rooms">
+              <el-table :data="dashboardSummary.roomStats" stripe style="width: 100%">
+                <el-table-column prop="roomName" label="会议室名称" width="180">
+                  <template #default="{ row }">
+                    <strong>{{ row.roomName }}</strong>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="location" label="位置" min-width="160"></el-table-column>
+                <el-table-column prop="capacity" label="容量" width="100">
+                  <template #default="{ row }">{{ row.capacity }} 人</template>
+                </el-table-column>
+                <el-table-column prop="count" label="有效预约场次" width="140" sortable>
+                  <template #default="{ row }">
+                    <span style="font-weight: 600; color: #2563eb;">{{ row.count }} 场</span>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="minutes" label="占用总时长" width="160" sortable>
+                  <template #default="{ row }">
+                    <span>{{ row.minutes }} 分钟</span>
+                    <span style="color: #94a3b8; font-size: 12px; margin-left: 6px;">({{ (row.minutes / 60).toFixed(1) }}h)</span>
+                  </template>
+                </el-table-column>
+                <el-table-column label="场次占比" width="160">
+                  <template #default="{ row }">
+                    <el-progress
+                      :percentage="dashboardSummary.totalCount ? Math.round((row.count / dashboardSummary.totalCount) * 100) : 0"
+                      color="#2563eb">
+                    </el-progress>
+                  </template>
+                </el-table-column>
+              </el-table>
+            </el-tab-pane>
+
+            <el-tab-pane label="部门维度明细" name="depts">
+              <el-table :data="dashboardSummary.deptStats" stripe style="width: 100%">
+                <el-table-column prop="deptName" label="部门名称" width="200">
+                  <template #default="{ row }">
+                    <strong>{{ row.deptName }}</strong>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="count" label="有效预约场次" width="150" sortable>
+                  <template #default="{ row }">
+                    <span style="font-weight: 600; color: #0d9488;">{{ row.count }} 场</span>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="minutes" label="占用总时长" width="180" sortable>
+                  <template #default="{ row }">
+                    <span>{{ row.minutes }} 分钟</span>
+                    <span style="color: #94a3b8; font-size: 12px; margin-left: 6px;">({{ (row.minutes / 60).toFixed(1) }}h)</span>
+                  </template>
+                </el-table-column>
+                <el-table-column label="场次占比" width="180">
+                  <template #default="{ row }">
+                    <el-progress
+                      :percentage="dashboardSummary.totalCount ? Math.round((row.count / dashboardSummary.totalCount) * 100) : 0"
+                      color="#0d9488">
+                    </el-progress>
+                  </template>
+                </el-table-column>
+              </el-table>
+            </el-tab-pane>
+          </el-tabs>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- 底部悬浮原型辅助工具球 -->
+    <div class="sim-bar">
+      <span class="sim-tag">原型交互辅助器</span>
+      <span style="color: #64748b;">时钟快进：</span>
+      <el-button-group size="small">
+        <el-button @click="advanceSimClock('09:30')">09:30</el-button>
+        <el-button @click="advanceSimClock('11:30')">11:30</el-button>
+        <el-button @click="advanceSimClock('14:30')">14:30</el-button>
+        <el-button @click="advanceSimClock('18:00')">18:00</el-button>
+      </el-button-group>
+      <el-button size="small" type="danger" plain @click="resetMockData">恢复初始 Mock 数据</el-button>
+    </div>
+  </div>
+
+  <!-- 引入依赖脚本 (Vue 3, Element Plus, Icons, ECharts) -->
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <script src="https://unpkg.com/element-plus/dist/index.full.min.js"></script>
+  <script src="https://unpkg.com/@element-plus/icons-vue"></script>
+  <script src="https://unpkg.com/echarts@5/dist/echarts.min.js"></script>
+
+  <script>
+    const { createApp, ref, reactive, computed, watch, onMounted, nextTick } = Vue;
+    const { ElMessage, ElMessageBox, ElNotification } = ElementPlus;
+
+    const app = createApp({
+      setup() {
+        // 当前激活 Tab ('list' | 'form' | 'dashboard')
+        const currentTab = ref('list');
+
+        // 服务端模拟时钟 (默认今天 2026-10-27 10:15)
+        const simDate = ref('2026-10-27');
+        const simTime = ref('10:15');
+        const simulatedCurrentDateTimeStr = computed(() => `${simDate.value} ${simTime.value}:00`);
+
+        // 预置部门主数据 (分册 03 契约)
+        const departments = ref([
+          { id: 1, name: '研发部' },
+          { id: 2, name: '产品部' },
+          { id: 3, name: '市场部' },
+          { id: 4, name: '行政部' },
+          { id: 5, name: '财务部' }
+        ]);
+
+        // 预置会议室主数据 (分册 03 契约)
+        const meetingRooms = ref([
+          { id: 1, name: '第一会议室', location: 'A 座 3F-301', capacity: 10, status: 'ENABLED' },
+          { id: 2, name: '第二会议室', location: 'A 座 3F-302', capacity: 6, status: 'ENABLED' },
+          { id: 3, name: '大会议室', location: 'B 座 2F-报告厅', capacity: 50, status: 'ENABLED' },
+          { id: 4, name: '头脑风暴室', location: 'B 座 2F-205', capacity: 8, status: 'ENABLED' },
+          { id: 5, name: '贵宾接待室', location: 'C 座 1F-105', capacity: 4, status: 'ENABLED' }
+        ]);
+
+        // 预置用户账号与当前用户 (分册 01 契约)
+        const presetUsers = ref([
+          { id: 101, username: 'emp001', name: '张伟', deptId: 1, deptName: '研发部', role: 'EMPLOYEE', roleText: '普通员工' },
+          { id: 100, username: 'admin', name: '李强', deptId: 4, deptName: '行政部', role: 'ADMIN', roleText: '系统管理员' },
+          { id: 102, username: 'emp002', name: '李雷', deptId: 2, deptName: '产品部', role: 'EMPLOYEE', roleText: '普通员工' },
+          { id: 103, username: 'emp003', name: '韩梅梅', deptId: 3, deptName: '市场部', role: 'EMPLOYEE', roleText: '普通员工' }
+        ]);
+        const currentUser = ref(presetUsers.value[0]); // 默认张伟（普通员工）
+
+        // 初始 Mock 预约记录池 (覆盖今日与当月，涵盖4种状态)
+        const initialMockReservations = [
+          {
+            id: 1001,
+            roomId: 1,
+            roomName: '第一会议室',
+            roomLocation: 'A 座 3F-301',
+            roomCapacity: 10,
+            userId: 101,
+            userName: '张伟',
+            deptId: 1,
+            deptName: '研发部',
+            title: '核心架构双周敏捷复盘会',
+            reserveDate: '2026-10-27',
+            startTime: '09:00',
+            endTime: '10:30',
+            status: 'ACTIVE', // 在 10:15 时刻正处于进行中
+            persistedStatus: 'ACTIVE'
+          },
+          {
+            id: 1002,
+            roomId: 1,
+            roomName: '第一会议室',
+            roomLocation: 'A 座 3F-301',
+            roomCapacity: 10,
+            userId: 102,
+            userName: '李雷',
+            deptId: 2,
+            deptName: '产品部',
+            title: 'Q4 核心产品需求评审与排期',
+            reserveDate: '2026-10-27',
+            startTime: '14:00',
+            endTime: '15:30',
+            status: 'PENDING',
+            persistedStatus: 'PENDING'
+          },
+          {
+            id: 1003,
+            roomId: 2,
+            roomName: '第二会议室',
+            roomLocation: 'A 座 3F-302',
+            roomCapacity: 6,
+            userId: 103,
+            userName: '韩梅梅',
+            deptId: 3,
+            deptName: '市场部',
+            title: '双十一营销推广物料终审会',
+            reserveDate: '2026-10-27',
+            startTime: '10:00',
+            endTime: '11:30',
+            status: 'ACTIVE',
+            persistedStatus: 'ACTIVE'
+          },
+          {
+            id: 1004,
+            roomId: 3,
+            roomName: '大会议室',
+            roomLocation: 'B 座 2F-报告厅',
+            roomCapacity: 50,
+            userId: 100,
+            userName: '李强',
+            deptId: 4,
+            deptName: '行政部',
+            title: '全员行政消防与保密安全宣贯',
+            reserveDate: '2026-10-27',
+            startTime: '08:30',
+            endTime: '10:00',
+            status: 'ENDED',
+            persistedStatus: 'ENDED'
+          },
+          {
+            id: 1005,
+            roomId: 3,
+            roomName: '大会议室',
+            roomLocation: 'B 座 2F-报告厅',
+            roomCapacity: 50,
+            userId: 101,
+            userName: '张伟',
+            deptId: 1,
+            deptName: '研发部',
+            title: '微服务中台高并发架构方案答辩',
+            reserveDate: '2026-10-27',
+            startTime: '15:00',
+            endTime: '17:00',
+            status: 'PENDING',
+            persistedStatus: 'PENDING'
+          },
+          {
+            id: 1006,
+            roomId: 4,
+            roomName: '头脑风暴室',
+            roomLocation: 'B 座 2F-205',
+            roomCapacity: 8,
+            userId: 102,
+            userName: '李雷',
+            deptId: 2,
+            deptName: '产品部',
+            title: '移动端体验微创新构想研讨',
+            reserveDate: '2026-10-27',
+            startTime: '11:00',
+            endTime: '12:00',
+            status: 'CANCELLED',
+            persistedStatus: 'CANCELLED'
+          },
+          {
+            id: 1007,
+            roomId: 2,
+            roomName: '第二会议室',
+            roomLocation: 'A 座 3F-302',
+            roomCapacity: 6,
+            userId: 103,
+            userName: '韩梅梅',
+            deptId: 3,
+            deptName: '市场部',
+            title: '全国大区合作伙伴商务碰头会',
+            reserveDate: '2026-10-27',
+            startTime: '15:30',
+            endTime: '17:00',
+            status: 'PENDING',
+            persistedStatus: 'PENDING'
+          },
+          // 补充 10 月其他日期的预约数据，用于丰富月度看板
+          {
+            id: 1008,
+            roomId: 1,
+            roomName: '第一会议室',
+            roomLocation: 'A 座 3F-301',
+            roomCapacity: 10,
+            userId: 101,
+            userName: '张伟',
+            deptId: 1,
+            deptName: '研发部',
+            title: '技术选型讨论会',
+            reserveDate: '2026-10-15',
+            startTime: '10:00',
+            endTime: '12:00',
+            status: 'ENDED',
+            persistedStatus: 'ENDED'
+          },
+          {
+            id: 1009,
+            roomId: 2,
+            roomName: '第二会议室',
+            roomLocation: 'A 座 3F-302',
+            roomCapacity: 6,
+            userId: 103,
+            userName: '韩梅梅',
+            deptId: 3,
+            deptName: '市场部',
+            title: '新品宣发策略对齐',
+            reserveDate: '2026-10-18',
+            startTime: '14:00',
+            endTime: '16:00',
+            status: 'ENDED',
+            persistedStatus: 'ENDED'
+          },
+          {
+            id: 1010,
+            roomId: 5,
+            roomName: '贵宾接待室',
+            roomLocation: 'C 座 1F-105',
+            roomCapacity: 4,
+            userId: 100,
+            userName: '李强',
+            deptId: 4,
+            deptName: '行政部',
+            title: '投资人行政接待会务',
+            reserveDate: '2026-10-20',
+            startTime: '15:00',
+            endTime: '16:30',
+            status: 'ENDED',
+            persistedStatus: 'ENDED'
+          },
+          {
+            id: 1011,
+            roomId: 4,
+            roomName: '头脑风暴室',
+            roomLocation: 'B 座 2F-205',
+            roomCapacity: 8,
+            userId: 102,
+            userName: '李雷',
+            deptId: 2,
+            deptName: '产品部',
+            title: '海外市场功能调研会',
+            reserveDate: '2026-10-22',
+            startTime: '09:30',
+            endTime: '11:00',
+            status: 'ENDED',
+            persistedStatus: 'ENDED'
+          }
+        ];
+
+        const reservations = ref(JSON.parse(JSON.stringify(initialMockReservations)));
+
+        // ==========================================
+        // 核心业务计算：computeStatus 虚拟状态机
+        // ==========================================
+        function computeStatus(r) {
+          // 若数据库已记录取消或人为提前结束，终态不再被时钟反转
+          if (r.persistedStatus === 'CANCELLED') return 'CANCELLED';
+          if (r.persistedStatus === 'ENDED') return 'ENDED';
+
+          const nowStr = `${simDate.value} ${simTime.value}`;
+          const startStr = `${r.reserveDate} ${r.startTime}`;
+          const endStr = `${r.reserveDate} ${r.endTime}`;
+
+          if (nowStr < startStr) {
+            return 'PENDING';
+          } else if (nowStr >= startStr && nowStr < endStr) {
+            return 'ACTIVE';
+          } else {
+            return 'ENDED';
+          }
+        }
+
+        // 带动态即时状态的预约列表
+        const reservationsWithComputedStatus = computed(() => {
+          return reservations.value.map(r => ({
+            ...r,
+            computedStatus: computeStatus(r)
+          }));
+        });
+
+        // ==========================================
+        // TAB 1: 预约列表交互逻辑
+        // ==========================================
+        const filterParams = reactive({
+          roomId: '',
+          reserveDate: '',
+          deptId: '',
+          status: ''
+        });
+        const quickScope = ref('all');
+        const currentPage = ref(1);
+        const pageSize = ref(10);
+
+        function handleQuickScopeChange(val) {
+          if (val === 'mine') {
+            // 员工/管理员仅看本人
+          } else if (val === 'today') {
+            filterParams.reserveDate = simDate.value;
+          } else if (val === 'active') {
+            filterParams.status = 'ACTIVE';
+          } else {
+            filterParams.reserveDate = '';
+            filterParams.status = '';
+          }
+        }
+
+        const filteredReservations = computed(() => {
+          return reservationsWithComputedStatus.value.filter(r => {
+            if (filterParams.roomId && r.roomId !== filterParams.roomId) return false;
+            if (filterParams.reserveDate && r.reserveDate !== filterParams.reserveDate) return false;
+            if (filterParams.deptId && r.deptId !== filterParams.deptId) return false;
+            if (filterParams.status && r.computedStatus !== filterParams.status) return false;
+            if (quickScope.value === 'mine' && r.userId !== currentUser.value.id) return false;
+            return true;
+          });
+        });
+
+        const pagedReservations = computed(() => {
+          const start = (currentPage.value - 1) * pageSize.value;
+          return filteredReservations.value.slice(start, start + pageSize.value);
+        });
+
+        function handleFilterSearch() {
+          currentPage.value = 1;
+        }
+
+        function resetFilter() {
+          filterParams.roomId = '';
+          filterParams.reserveDate = '';
+          filterParams.deptId = '';
+          filterParams.status = '';
+          quickScope.value = 'all';
+          currentPage.value = 1;
+        }
+
+        function handleSizeChange(val) {
+          pageSize.value = val;
+        }
+        function handleCurrentChange(val) {
+          currentPage.value = val;
+        }
+
+        // 操作权限判定 (分册 01/02 契约)
+        function canOperate(record) {
+          // 管理员拥有任意操作权；普通员工仅拥有本人预约操作权
+          if (currentUser.value.role === 'ADMIN') return true;
+          return record.userId === currentUser.value.id;
+        }
+
+        // 取消预约
+        function handleCancel(row) {
+          ElMessageBox.confirm(
+            `确定取消【${row.roomName}】的预约“${row.title}”(${row.startTime}~${row.endTime})吗？\n取消后该时段将被立即释放供其他人预约。`,
+            '取消预约确认',
+            {
+              confirmButtonText: '确定取消',
+              cancelButtonText: '暂不取消',
+              type: 'warning'
+            }
+          ).then(() => {
+            const target = reservations.value.find(item => item.id === row.id);
+            if (target) {
+              target.persistedStatus = 'CANCELLED';
+              target.status = 'CANCELLED';
+              ElMessage.success('预约已成功取消，时段已即刻释放！');
+              renderDashboardCharts();
+            }
+          }).catch(() => {});
+        }
+
+        // 提前结束会议
+        function handleEarlyEnd(row) {
+          ElMessageBox.confirm(
+            `确定提前结束正在进行的会议“${row.title}”吗？\n结束后状态将变更为“已结束”。按PRD规则，该时段仍完整归档计入统计。`,
+            '提前结束会议确认',
+            {
+              confirmButtonText: '确定结束',
+              cancelButtonText: '继续会议',
+              type: 'info'
+            }
+          ).then(() => {
+            const target = reservations.value.find(item => item.id === row.id);
+            if (target) {
+              target.persistedStatus = 'ENDED';
+              target.status = 'ENDED';
+              ElMessage.success('会议已提前结束，状态已流转为已结束！');
+              renderDashboardCharts();
+            }
+          }).catch(() => {});
+        }
+
+        // ==========================================
+        // TAB 2: 发起预约表单交互逻辑
+        // ==========================================
+        const bookingFormRef = ref(null);
+        const submitting = ref(false);
+
+        // 30分钟粒度时间步长选项 (08:00 - 21:00)
+        const timeSlotOptions = [
+          '08:00', '08:30', '09:00', '09:30', '10:00', '10:30',
+          '11:00', '11:30', '12:00', '12:30', '13:00', '13:30',
+          '14:00', '14:30', '15:00', '15:30', '16:00', '16:30',
+          '17:00', '17:30', '18:00', '18:30', '19:00', '19:30',
+          '20:00', '20:30', '21:00'
+        ];
+
+        const bookingForm = reactive({
+          roomId: 1,
+          reserveDate: '2026-10-27',
+          startTime: '10:30',
+          endTime: '12:00',
+          deptId: 1,
+          title: ''
+        });
+
+        const bookingRules = {
+          roomId: [{ required: true, message: '请选择会议室', trigger: 'change' }],
+          reserveDate: [{ required: true, message: '请选择预约日期', trigger: 'change' }],
+          deptId: [{ required: true, message: '请选择归属部门', trigger: 'change' }],
+          title: [
+            { required: true, message: '请输入会议主题', trigger: 'blur' },
+            { min: 2, max: 100, message: '主题长度在 2 到 100 个字符', trigger: 'blur' }
+          ]
+        };
+
+        const selectedRoomDetail = computed(() => {
+          return meetingRooms.value.find(r => r.id === bookingForm.roomId);
+        });
+
+        function disabledPastDate(time) {
+          // 禁止预约过去的日期
+          const today = new Date(simDate.value).getTime();
+          return time.getTime() < today - 86400000;
+        }
+
+        // 当前表单计算的分钟数
+        const currentFormDurationMinutes = computed(() => {
+          if (!bookingForm.startTime || !bookingForm.endTime) return 0;
+          return calcDurationMinutes(bookingForm.startTime, bookingForm.endTime);
+        });
+
+        // 目标会议室在所选日期的所有有效占用时段
+        const dayOccupiedSlots = computed(() => {
+          if (!bookingForm.roomId || !bookingForm.reserveDate) return [];
+          return reservations.value.filter(r => {
+            return r.roomId === bookingForm.roomId &&
+                   r.reserveDate === bookingForm.reserveDate &&
+                   r.persistedStatus !== 'CANCELLED';
+          });
+        });
+
+        // 核心：半开区间冲突预检算法 [s_new, e_new) 与 [s_exist, e_exist)
+        const formConflictInfo = computed(() => {
+          const { roomId, reserveDate, startTime, endTime } = bookingForm;
+          if (!roomId || !reserveDate || !startTime || !endTime || endTime <= startTime) {
+            return { hasConflict: false, conflictRecord: null };
+          }
+
+          // 冲突判定条件：r.status != CANCELLED && r.startTime < endTime && startTime < r.endTime
+          const conflict = reservations.value.find(r => {
+            if (r.roomId !== roomId) return false;
+            if (r.reserveDate !== reserveDate) return false;
+            if (r.persistedStatus === 'CANCELLED') return false;
+
+            // 半开区间重叠核心判定
+            const isOverlap = (r.startTime < endTime) && (startTime < r.endTime);
+            return isOverlap;
+          });
+
+          return {
+            hasConflict: !!conflict,
+            conflictRecord: conflict || null
+          };
+        });
+
+        function handleFormParamChange() {
+          // 触发响应式预检
+        }
+
+        // 辅助：计算时间轴轨道上的绝对百分比位置 (以 08:00 - 20:00 共 12 小时 = 720 分钟为基底)
+        function calcSlotStyle(start, end, bgColor) {
+          const baseMinutes = 8 * 60; // 08:00
+          const totalTrackMinutes = 12 * 60; // 12h = 720min
+
+          const [sh, sm] = start.split(':').map(Number);
+          const [eh, em] = end.split(':').map(Number);
+
+          const startOffset = Math.max(0, (sh * 60 + sm) - baseMinutes);
+          const endOffset = Math.min(totalTrackMinutes, (eh * 60 + em) - baseMinutes);
+          const duration = Math.max(0, endOffset - startOffset);
+
+          const left = (startOffset / totalTrackMinutes) * 100;
+          const width = (duration / totalTrackMinutes) * 100;
+
+          return {
+            left: `${left}%`,
+            width: `${Math.max(width, 1)}%`,
+            backgroundColor: bgColor
+          };
+        }
+
+        // 提交预约
+        function submitBooking() {
+          bookingFormRef.value.validate((valid) => {
+            if (!valid) return;
+
+            if (formConflictInfo.value.hasConflict) {
+              ElMessage.error('时段冲突：该会议室在所选时间段已被预约，请调整！');
+              return;
+            }
+
+            submitting.value = true;
+            setTimeout(() => {
+              submitting.value = false;
+              const newId = 1000 + reservations.value.length + 1;
+              const room = selectedRoomDetail.value;
+              const dept = departments.value.find(d => d.id === bookingForm.deptId);
+
+              const newRecord = {
+                id: newId,
+                roomId: room.id,
+                roomName: room.name,
+                roomLocation: room.location,
+                roomCapacity: room.capacity,
+                userId: currentUser.value.id,
+                userName: currentUser.value.name,
+                deptId: dept.id,
+                deptName: dept.name,
+                title: bookingForm.title.trim(),
+                reserveDate: bookingForm.reserveDate,
+                startTime: bookingForm.startTime,
+                endTime: bookingForm.endTime,
+                status: 'PENDING',
+                persistedStatus: 'PENDING'
+              };
+
+              reservations.value.unshift(newRecord);
+
+              ElNotification({
+                title: '预约成功',
+                message: `已成功预约【${room.name}】(${bookingForm.reserveDate} ${bookingForm.startTime}~${bookingForm.endTime})`,
+                type: 'success',
+                duration: 3000
+              });
+
+              // 重置并跳转到列表页
+              bookingForm.title = '';
+              currentTab.value = 'list';
+              renderDashboardCharts();
+            }, 300);
+          });
+        }
+
+        function resetBookingForm() {
+          bookingForm.roomId = 1;
+          bookingForm.reserveDate = simDate.value;
+          bookingForm.startTime = '10:30';
+          bookingForm.endTime = '12:00';
+          bookingForm.deptId = currentUser.value.deptId;
+          bookingForm.title = '';
+        }
+
+        // ==========================================
+        // TAB 3: 数据看板交互与 ECharts 渲染逻辑
+        // ==========================================
+        const dashboardDim = ref('day');
+        const dashboardDate = ref('2026-10-27');
+        const dashboardMonth = ref('2026-10');
+        const dashboardLoading = ref(false);
+        const dashboardTableTab = ref('rooms');
+
+        // 看板聚合计算属性 (依据 PRD 分册 04 统计口径)
+        const dashboardSummary = computed(() => {
+          // 过滤有效预约：status != CANCELLED
+          const validRecords = reservations.value.filter(r => {
+            if (r.persistedStatus === 'CANCELLED') return false;
+            if (dashboardDim.value === 'day') {
+              return r.reserveDate === dashboardDate.value;
+            } else {
+              return r.reserveDate.startsWith(dashboardMonth.value);
+            }
+          });
+
+          const totalCount = validRecords.length;
+          let totalMinutes = 0;
+          validRecords.forEach(r => {
+            totalMinutes += calcDurationMinutes(r.startTime, r.endTime);
+          });
+
+          // 全量会议室指标 (含 0 场次)
+          const roomStats = meetingRooms.value.map(room => {
+            const roomRecords = validRecords.filter(r => r.roomId === room.id);
+            let mins = 0;
+            roomRecords.forEach(r => mins += calcDurationMinutes(r.startTime, r.endTime));
+            return {
+              roomId: room.id,
+              roomName: room.name,
+              location: room.location,
+              capacity: room.capacity,
+              count: roomRecords.length,
+              minutes: mins
+            };
+          }).sort((a, b) => b.count - a.count || a.roomId - b.roomId);
+
+          // 全量部门指标 (含 0 场次)
+          const deptStats = departments.value.map(dept => {
+            const deptRecords = validRecords.filter(r => r.deptId === dept.id);
+            let mins = 0;
+            deptRecords.forEach(r => mins += calcDurationMinutes(r.startTime, r.endTime));
+            return {
+              deptId: dept.id,
+              deptName: dept.name,
+              count: deptRecords.length,
+              minutes: mins
+            };
+          }).sort((a, b) => b.count - a.count || a.deptId - b.deptId);
+
+          return {
+            totalCount,
+            totalMinutes,
+            roomCount: meetingRooms.value.length,
+            deptCount: departments.value.length,
+            roomStats,
+            deptStats,
+            validRecords
+          };
+        });
+
+        let chartRoomCount = null;
+        let chartDeptCount = null;
+        let chartStackedDuration = null;
+
+        function initCharts() {
+          const elRoom = document.getElementById('chart-room-count');
+          const elDept = document.getElementById('chart-dept-count');
+          const elStacked = document.getElementById('chart-stacked-duration');
+
+          if (elRoom && !chartRoomCount) chartRoomCount = echarts.init(elRoom);
+          if (elDept && !chartDeptCount) chartDeptCount = echarts.init(elDept);
+          if (elStacked && !chartStackedDuration) chartStackedDuration = echarts.init(elStacked);
+        }
+
+        function renderDashboardCharts() {
+          nextTick(() => {
+            initCharts();
+            const summary = dashboardSummary.value;
+
+            // 1. 会议室预约场次柱状图 (品牌蓝 #2563eb，圆角，细条 mark)
+            if (chartRoomCount) {
+              chartRoomCount.setOption({
+                tooltip: {
+                  trigger: 'axis',
+                  axisPointer: { type: 'shadow' },
+                  formatter: '{b}<br/>预约场次：<strong>{c}</strong> 场'
+                },
+                grid: { left: '3%', right: '4%', bottom: '8%', top: '8%', containLabel: true },
+                xAxis: {
+                  type: 'category',
+                  data: summary.roomStats.map(r => r.roomName),
+                  axisLabel: { interval: 0, color: '#475569', fontSize: 12 },
+                  axisLine: { lineStyle: { color: '#cbd5e1' } }
+                },
+                yAxis: {
+                  type: 'value',
+                  minInterval: 1,
+                  name: '场次',
+                  axisLabel: { color: '#64748b' },
+                  splitLine: { lineStyle: { type: 'dashed', color: '#f1f5f9' } }
+                },
+                series: [{
+                  name: '预约场次',
+                  type: 'bar',
+                  barWidth: 26,
+                  itemStyle: {
+                    color: '#2563eb',
+                    borderRadius: [4, 4, 0, 0]
+                  },
+                  data: summary.roomStats.map(r => r.count)
+                }]
+              }, true);
+            }
+
+            // 2. 部门预约场次柱状图 (Teal #0d9488，圆角)
+            if (chartDeptCount) {
+              chartDeptCount.setOption({
+                tooltip: {
+                  trigger: 'axis',
+                  axisPointer: { type: 'shadow' },
+                  formatter: '{b}<br/>预约场次：<strong>{c}</strong> 场'
+                },
+                grid: { left: '3%', right: '4%', bottom: '8%', top: '8%', containLabel: true },
+                xAxis: {
+                  type: 'category',
+                  data: summary.deptStats.map(d => d.deptName),
+                  axisLabel: { interval: 0, color: '#475569', fontSize: 12 },
+                  axisLine: { lineStyle: { color: '#cbd5e1' } }
+                },
+                yAxis: {
+                  type: 'value',
+                  minInterval: 1,
+                  name: '场次',
+                  axisLabel: { color: '#64748b' },
+                  splitLine: { lineStyle: { type: 'dashed', color: '#f1f5f9' } }
+                },
+                series: [{
+                  name: '预约场次',
+                  type: 'bar',
+                  barWidth: 26,
+                  itemStyle: {
+                    color: '#0d9488',
+                    borderRadius: [4, 4, 0, 0]
+                  },
+                  data: summary.deptStats.map(d => d.count)
+                }]
+              }, true);
+            }
+
+            // 3. 会议室 x 部门占用时长堆叠对比图
+            if (chartStackedDuration) {
+              const deptColorPalette = ['#2563eb', '#0284c7', '#f59e0b', '#10b981', '#8b5cf6'];
+              const roomNames = meetingRooms.value.map(r => r.name);
+
+              const series = departments.value.map((dept, idx) => {
+                const data = meetingRooms.value.map(room => {
+                  const matches = summary.validRecords.filter(r => r.roomId === room.id && r.deptId === dept.id);
+                  let mins = 0;
+                  matches.forEach(m => mins += calcDurationMinutes(m.startTime, m.endTime));
+                  return mins;
+                });
+
+                return {
+                  name: dept.name,
+                  type: 'bar',
+                  stack: 'total',
+                  barWidth: 32,
+                  itemStyle: {
+                    color: deptColorPalette[idx % deptColorPalette.length],
+                    borderColor: '#ffffff',
+                    borderWidth: 1
+                  },
+                  data: data
+                };
+              });
+
+              chartStackedDuration.setOption({
+                tooltip: {
+                  trigger: 'axis',
+                  axisPointer: { type: 'shadow' },
+                  formatter: function (params) {
+                    let total = 0;
+                    let html = `<strong>${params[0].name}</strong><br/>`;
+                    params.forEach(p => {
+                      if (p.value > 0) {
+                        total += p.value;
+                        html += `${p.marker} ${p.seriesName}: <strong>${p.value}</strong> 分钟 (${(p.value/60).toFixed(1)}h)<br/>`;
+                      }
+                    });
+                    html += `<div style="border-top:1px solid #e2e8f0; margin-top:4px; padding-top:4px;">
+                              总占用时长：<strong>${total}</strong> 分钟 (${(total/60).toFixed(1)} 小时)
+                             </div>`;
+                    return html;
+                  }
+                },
+                legend: {
+                  data: departments.value.map(d => d.name),
+                  top: 0,
+                  icon: 'circle'
+                },
+                grid: { left: '3%', right: '4%', bottom: '8%', top: '14%', containLabel: true },
+                xAxis: {
+                  type: 'category',
+                  data: roomNames,
+                  axisLabel: { color: '#475569', fontSize: 12 },
+                  axisLine: { lineStyle: { color: '#cbd5e1' } }
+                },
+                yAxis: {
+                  type: 'value',
+                  name: '占用时长 (分钟)',
+                  axisLabel: { color: '#64748b' },
+                  splitLine: { lineStyle: { type: 'dashed', color: '#f1f5f9' } }
+                },
+                series: series
+              }, true);
+            }
+          });
+        }
+
+        function handleDashboardDimChange() {
+          refreshDashboard();
+        }
+
+        function refreshDashboard() {
+          dashboardLoading.value = true;
+          setTimeout(() => {
+            dashboardLoading.value = false;
+            renderDashboardCharts();
+            ElMessage.success('看板数据已基于最新预约与 Redis 缓存重新聚合！');
+          }, 250);
+        }
+
+        // ==========================================
+        // 顶部切换身份与时钟模拟工具
+        // ==========================================
+        function handleUserSwitch(username) {
+          const target = presetUsers.value.find(u => u.username === username);
+          if (target) {
+            currentUser.value = target;
+            bookingForm.deptId = target.deptId;
+            ElNotification({
+              title: '用户身份切换成功',
+              message: `当前模拟登录身份：${target.name} (${target.deptName} · ${target.roleText})`,
+              type: 'info',
+              duration: 2500
+            });
+          }
+        }
+
+        function advanceSimClock(timeStr) {
+          simTime.value = timeStr;
+          ElMessage.info(`时钟已推移至 ${simDate.value} ${timeStr}:00`);
+        }
+
+        function resetMockData() {
+          reservations.value = JSON.parse(JSON.stringify(initialMockReservations));
+          simTime.value = '10:15';
+          ElMessage.success('已恢复初始 Mock 预约记录');
+          renderDashboardCharts();
+        }
+
+        function switchTab(tab) {
+          currentTab.value = tab;
+          if (tab === 'dashboard') {
+            nextTick(() => {
+              renderDashboardCharts();
+            });
+          }
+        }
+
+        // ==========================================
+        // 工具通用函数
+        // ==========================================
+        function calcDurationMinutes(start, end) {
+          if (!start || !end) return 0;
+          const [sh, sm] = start.split(':').map(Number);
+          const [eh, em] = end.split(':').map(Number);
+          return (eh * 60 + em) - (sh * 60 + sm);
+        }
+
+        function getStatusText(status) {
+          switch (status) {
+            case 'PENDING': return '未开始';
+            case 'ACTIVE': return '进行中';
+            case 'ENDED': return '已结束';
+            case 'CANCELLED': return '已取消';
+            default: return status;
+          }
+        }
+
+        function getStatusBadgeClass(status) {
+          switch (status) {
+            case 'PENDING': return 'pending';
+            case 'ACTIVE': return 'active';
+            case 'ENDED': return 'ended';
+            case 'CANCELLED': return 'cancelled';
+            default: return 'pending';
+          }
+        }
+
+        // 窗口 resize 自适应
+        window.addEventListener('resize', () => {
+          if (chartRoomCount) chartRoomCount.resize();
+          if (chartDeptCount) chartDeptCount.resize();
+          if (chartStackedDuration) chartStackedDuration.resize();
+        });
+
+        onMounted(() => {
+          // 初始加载
+          bookingForm.deptId = currentUser.value.deptId;
+        });
+
+        return {
+          currentTab,
+          switchTab,
+          simDate,
+          simTime,
+          simulatedCurrentDateTimeStr,
+          departments,
+          meetingRooms,
+          presetUsers,
+          currentUser,
+          reservations,
+          reservationsWithComputedStatus,
+          // List Tab
+          filterParams,
+          quickScope,
+          handleQuickScopeChange,
+          filteredReservations,
+          pagedReservations,
+          currentPage,
+          pageSize,
+          handleSizeChange,
+          handleCurrentChange,
+          handleFilterSearch,
+          resetFilter,
+          canOperate,
+          handleCancel,
+          handleEarlyEnd,
+          // Form Tab
+          bookingFormRef,
+          bookingForm,
+          bookingRules,
+          timeSlotOptions,
+          submitting,
+          selectedRoomDetail,
+          disabledPastDate,
+          currentFormDurationMinutes,
+          dayOccupiedSlots,
+          formConflictInfo,
+          handleFormParamChange,
+          calcSlotStyle,
+          submitBooking,
+          resetBookingForm,
+          // Dashboard Tab
+          dashboardDim,
+          dashboardDate,
+          dashboardMonth,
+          dashboardLoading,
+          dashboardSummary,
+          dashboardTableTab,
+          handleDashboardDimChange,
+          refreshDashboard,
+          // Auxiliary
+          handleUserSwitch,
+          advanceSimClock,
+          resetMockData,
+          calcDurationMinutes,
+          getStatusText,
+          getStatusBadgeClass
+        };
+      }
+    });
+
+    // 注册 Element Plus 图标
+    for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
+      app.component(key, component);
+    }
+
+    app.use(ElementPlus);
+    app.mount('#app');
+  </script>
+</body>
+</html>

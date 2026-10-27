@@ -1,0 +1,48 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /
+
+spring:
+  application:
+    name: meeting-room-backend
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://127.0.0.1:3306/exam?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
+    username: exam
+    password: ${DB_PASSWORD:V-Pnvk}
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:schema.sql
+  data:
+    redis:
+      host: 127.0.0.1
+      port: 6379
+      password: ${REDIS_PASSWORD:V-Pnvk}
+      timeout: 3000ms
+      lettuce:
+        pool:
+          max-active: 16
+          max-idle: 8
+          min-idle: 2
+
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+app:
+  jwt:
+    secret: ThisIsASecretKeyForJwtSigningMeetingRoomReservationSystem2026!
+    expiration-seconds: 28800 # 8 hours
+  auth:
+    max-failed-attempts: 5
+    lockout-minutes: 15
+    ip-max-failed-attempts: 10
+    ip-rate-limit-minutes: 10
+  reservation:
+    submit-lock-seconds: 5
+  dashboard:
+    cache-ttl-minutes: 10

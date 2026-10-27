@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.exam.mapper.MeetingRoomMapper">
+
+    <select id="findAll" resultType="com.exam.entity.MeetingRoom">
+        SELECT * FROM `meeting_room`
+        <where>
+            `deleted_at` IS NULL
+            <if test="status != null and status != ''">
+                AND `status` = #{status}
+            </if>
+            <if test="keyword != null and keyword != ''">
+                AND (`name` LIKE CONCAT('%', #{keyword}, '%') OR `location` LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+        </where>
+        ORDER BY `id` ASC
+    </select>
+
+</mapper>

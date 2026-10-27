@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.exam.mapper.ReservationMapper">
+
+    <select id="queryList" resultType="com.exam.entity.Reservation">
+        SELECT * FROM `reservation`
+        <where>
+            <if test="roomId != null">
+                AND `room_id` = #{roomId}
+            </if>
+            <if test="reserveDate != null">
+                AND `reserve_date` = #{reserveDate}
+            </if>
+            <if test="deptId != null">
+                AND `dept_id` = #{deptId}
+            </if>
+            <if test="userId != null">
+                AND `user_id` = #{userId}
+            </if>
+            <if test="status != null and status != ''">
+                AND `status` = #{status}
+            </if>
+        </where>
+        ORDER BY `id` DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <select id="countList" resultType="long">
+        SELECT COUNT(1) FROM `reservation`
+        <where>
+            <if test="roomId != null">
+                AND `room_id` = #{roomId}
+            </if>
+            <if test="reserveDate != null">
+                AND `reserve_date` = #{reserveDate}
+            </if>
+            <if test="deptId != null">
+                AND `dept_id` = #{deptId}
+            </if>
+            <if test="userId != null">
+                AND `user_id` = #{userId}
+            </if>
+            <if test="status != null and status != ''">
+                AND `status` = #{status}
+            </if>
+        </where>
+    </select>
+
+    <select id="findRoomStatsByDate" resultType="com.exam.dto.DashboardStatsVO$RoomStat">
+        SELECT
+            r.`id` AS roomId,
+            r.`name` AS roomName,
+            COUNT(res.`id`) AS bookingCount,
+            COALESCE(SUM(TIMESTAMPDIFF(MINUTE, res.`start_time`, res.`end_time`)), 0) AS occupiedMinutes
+        FROM `meeting_room` r
+        LEFT JOIN `reservation` res
+            ON r.`id` = res.`room_id`
+            AND res.`reserve_date` = #{date}
+            AND res.`status` != 'CANCELLED'
+        WHERE r.`deleted_at` IS NULL
+        GROUP BY r.`id`, r.`name`
+        ORDER BY bookingCount DESC, occupiedMinutes DESC, r.`id` ASC
+    </select>
+
+    <select id="findRoomStatsByMonth" resultType="com.exam.dto.DashboardStatsVO$RoomStat">
+        SELECT
+            r.`id` AS roomId,
+            r.`name` AS roomName,
+            COUNT(res.`id`) AS bookingCount,
+            COALESCE(SUM(TIMESTAMPDIFF(MINUTE, res.`start_time`, res.`end_time`)), 0) AS occupiedMinutes
+        FROM `meeting_room` r
+        LEFT JOIN `reservation` res
+            ON r.`id` = res.`room_id`
+            AND res.`reserve_date` &gt;= #{startDate}
+            AND res.`reserve_date` &lt;= #{endDate}
+            AND res.`status` != 'CANCELLED'
+        WHERE r.`deleted_at` IS NULL
+        GROUP BY r.`id`, r.`name`
+        ORDER BY bookingCount DESC, occupiedMinutes DESC, r.`id` ASC
+    </select>
+
+    <select id="findDeptStatsByDate" resultType="com.exam.dto.DashboardStatsVO$DeptStat">
+        SELECT
+            d.`id` AS deptId,
+            d.`name` AS deptName,
+            COUNT(res.`id`) AS bookingCount,
+            COALESCE(SUM(TIMESTAMPDIFF(MINUTE, res.`start_time`, res.`end_time`)), 0) AS occupiedMinutes
+        FROM `department` d
+        LEFT JOIN `reservation` res
+            ON d.`id` = res.`dept_id`
+            AND res.`reserve_date` = #{date}
+            AND res.`status` != 'CANCELLED'
+        WHERE d.`deleted_at` IS NULL
+        GROUP BY d.`id`, d.`name`
+        ORDER BY bookingCount DESC, occupiedMinutes DESC, d.`id` ASC
+    </select>
+
+    <select id="findDeptStatsByMonth" resultType="com.exam.dto.DashboardStatsVO$DeptStat">
+        SELECT
+            d.`id` AS deptId,
+            d.`name` AS deptName,
+            COUNT(res.`id`) AS bookingCount,
+            COALESCE(SUM(TIMESTAMPDIFF(MINUTE, res.`start_time`, res.`end_time`)), 0) AS occupiedMinutes
+        FROM `department` d
+        LEFT JOIN `reservation` res
+            ON d.`id` = res.`dept_id`
+            AND res.`reserve_date` &gt;= #{startDate}
+            AND res.`reserve_date` &lt;= #{endDate}
+            AND res.`status` != 'CANCELLED'
+        WHERE d.`deleted_at` IS NULL
+        GROUP BY d.`id`, d.`name`
+        ORDER BY bookingCount DESC, occupiedMinutes DESC, d.`id` ASC
+    </select>
+
+</mapper>
